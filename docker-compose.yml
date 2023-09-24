@@ -1,0 +1,47 @@
+version: "3.9"
+
+
+services:
+  bet-maker:
+    container_name: "${BET_SERVICE_NAME}"
+    build:
+      context: './'
+      dockerfile: Dockerfile
+      args:
+        APP: "${BET_SERVICE_NAME}"
+    env_file:
+      - '.env'
+    ports:
+      - "${BET_MAKER_PORT}:80"
+    restart: always
+    depends_on:
+      - redis_bets_db
+
+  line-provider:
+    container_name: '${LP_SERVICE_NAME}'
+    build:
+      context: './'
+      dockerfile: Dockerfile
+      args:
+        APP: "${LP_SERVICE_NAME}"
+    env_file:
+      - '.env'
+    ports:
+      - "${LINE_PROVIDER_PORT}:80"
+    restart: always
+    depends_on:
+     - bet-maker
+
+  redis_bets_db:
+    image: redis/redis-stack:latest
+    restart: always
+#    volumes:
+#      - 'redis_bets:/data/'
+    container_name: "${REDIS_HOST}"
+    ports:
+      - "${REDIS_HTTP}:8001"
+    expose:
+      - "6379"
+# for testing remove volume
+#volumes:
+#  redis_bets:
